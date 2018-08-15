@@ -16,6 +16,18 @@
 
 ### 使用
 
+第一次使用时需要build基础容器
+
+build基础容器：
+
+```
+docker build --tag cnss/pwn ./docker/pwndocker
+```
+
+
+
+启动pwn-server
+
 ```python
 python3 pwnserver.py
 ```
@@ -23,6 +35,8 @@ python3 pwnserver.py
 目前并没有封装为服务，无守护程序，也没有关闭容器的功能，若是要关闭容器需要手动关闭
 
 注：关闭容器后容器将会被自动删除
+
+**请务必保证pwn目录下的文件是可执行的！！！**
 
 
 
