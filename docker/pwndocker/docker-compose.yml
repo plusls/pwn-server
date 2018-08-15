@@ -1,0 +1,23 @@
+version: '2.2'
+
+services:
+    pwn:
+        build: ./pwndocker
+        image: cnss/pwn
+        volumes: 
+            - ./pwndocker/xinetd:/etc/xinetd.d/xinetd:ro
+            - ./volumes/pwn1/bin:/ctf/bin:ro
+            - ./volumes/pwn1/flags/abcd/flag:/ctf/pwn/flag:ro
+        ports:
+            - "60001:8888"
+        expose:
+            - "8888"
+        pids_limit: 1024
+        cpus: 0.5
+        restart: unless-stopped #不管退出状态码是什么始终重启容器
+        networks:
+            - pwn
+networks:
+    pwn:
+    external:
+        name: pwn
