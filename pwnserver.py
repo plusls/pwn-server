@@ -125,16 +125,16 @@ def main():
     # 读取路径配置
     log_dir = os.path.abspath(config['log_dir'])
     if os.path.isdir(log_dir) is False:
-        raise Exception('{} is not dir'.format(log_dir))
+        os.mkdir(log_dir)
     data_dir = os.path.abspath(config['data_dir'])
     if os.path.isdir(data_dir) is False:
-        raise Exception('{} is not dir'.format(data_dir))
+        os.mkdir(data_dir)
     pwn_dir = os.path.abspath(config['pwn_dir'])
     if os.path.isdir(pwn_dir) is False:
-        raise Exception('{} is not dir'.format(pwn_dir))
+        os.mkdir(pwn_dir)
     pwmdocker_dir = os.path.abspath(config['pwmdocker_dir'])
     if os.path.isdir(pwmdocker_dir) is False:
-        raise Exception('{} is not dir'.format(pwmdocker_dir))
+        os.mkdir(pwmdocker_dir)
 
     # 初始化logging
     logger = logging.getLogger('log')
