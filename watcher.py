@@ -8,17 +8,18 @@ import os
 import fanotify
 from misc import get_ppid
 
+IsRootProcess = lambda pid: os.stat('/proc/{}'.format(pid)).st_uid == 0
+
 class Watcher(object):
     def __init__(self, data_dir):
         self.data_dir = data_dir
         self.watch_dict = {}
-        self.fan_fd = fanotify.Init(fanotify.FAN_CLASS_CONTENT, os.O_RDONLY)
+        self.fan_fd = fanotify.Init(fanotify.FAN_CLASS_PRE_CONTENT, os.O_RDONLY)
         self.thread = threading.Thread(target=self._fa_worker)
         self.thread.start()
 
     def _get_token(self, path):
         return path  # To-Do
-
 
     def _get_path(self, token):
         return '{}/{}/flag'.format(self.data_dir, token)
@@ -27,13 +28,13 @@ class Watcher(object):
         self.watch_dict[token] = {'last_access': 0, 'pid': 0}
         fanotify.Mark(self.fan_fd,
                       fanotify.FAN_MARK_ADD,
-                      fanotify.FAN_OPEN,
+                      fanotify.FAN_OPEN_PERM,
                       -1, self._get_path(token))
 
     def rmv_watch_file(self, token):
         fanotify.Mark(self.fan_fd,
                       fanotify.FAN_MARK_REMOVE,
-                      fanotify.FAN_OPEN,
+                      fanotify.FAN_OPEN_PERM,
                       -1, self._get_path(token))
         del self.watch_dict[token]
 
@@ -48,6 +49,7 @@ class Watcher(object):
         while True:
             buf = os.read(self.fan_fd, 4096)
             assert buf
+            response = fanotify.FAN_ALLOW # ALL ALLOW
             while fanotify.EventOk(buf):
                 buf, event = fanotify.EventNext(buf)
                 print(get_ppid(event.pid))
@@ -65,6 +67,7 @@ class Watcher(object):
                     self.watch_dict[token]['pid'] = event.pid
                     print(self.watch_dict[token]['last_access'],
                           full_path, self.watch_dict[token]['pid'])  # DEBUG
+                os.write(self.fan_fd, fanotify.Response(event.fd, response))
                 os.close(event.fd)
             assert not buf
 
