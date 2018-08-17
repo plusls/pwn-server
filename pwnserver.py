@@ -6,9 +6,8 @@ import time
 import hashlib
 import os
 import docker
-
 from get_pwn_data import get_pwn_data
-from forward import tcp_mapping_request
+from forward import tcp_mapping_request, init_big_brother
 # log 路径
 log_dir = None
 # 生成的flag路径
@@ -53,7 +52,7 @@ def handle_connect(connect_socket):
         raise Exception('{} is not exists'.format(problem_dir))
 
     # log初始化
-    log_name = 'log.{}.{}'.format(token, connect_time)
+    log_name = 'log.{}.{}.{}'.format(problem, token, connect_time)
     logger = logging.getLogger(log_name)
     handler = logging.FileHandler('{}/{}.log'.format(log_dir, log_name))
     handler.setLevel(logging.INFO)
@@ -99,11 +98,12 @@ def handle_connect(connect_socket):
         try:
             network = docker_client.networks.get('pwn')
         except docker.errors.NotFound:
+            # 可能导致越权访问
             network = docker_client.networks.create('pwn')
 
         volumes = {'{}/xinetd'.format(pwmdocker_dir): {'bind': '/etc/xinetd.d/xinetd', 'mode': 'ro'},
                    problem_dir: {'bind': '/ctf/pwn/bin', 'mode': 'ro'},
-                   flag_path: {'bind': '/ctf/pwn/flag', 'mode': 'ro'},
+                   flag_path: {'bind': '/ctf/pwn/flag_{}'.format(token), 'mode': 'ro'},
                    }
         logger.info('create container:{}'.format(token))
         pwn_containers = docker_client.containers.run(image=pwn_image,
@@ -116,7 +116,7 @@ def handle_connect(connect_socket):
     ip = docker_client.api.inspect_container(token)['NetworkSettings']['Networks']['pwn']['IPAddress']
     docker_client.close()
     logger.info('container ip:{}'.format(ip))
-    tcp_mapping_request(connect_socket, ip, 1337, log_name)
+    tcp_mapping_request(connect_socket, ip, 1337, log_name, log_dir, token)
 
 
 def main():
@@ -150,6 +150,10 @@ def main():
     console.setLevel(logging.INFO)
     console.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
     logger.addHandler(console)
+
+    # 初始化监视器
+    init_big_brother(data_dir)
+
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # 端口复用
