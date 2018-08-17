@@ -14,6 +14,16 @@
 
 5.自动记录pwn题流量
 
+### 依赖
+
+fanotify
+
+```
+pip3 install git+https://github.com/google/python-fanotify.git --user
+```
+
+
+
 ### 使用
 
 第一次使用时需要build基础容器

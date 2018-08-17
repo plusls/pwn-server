@@ -22,7 +22,7 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name):
         except Exception:
             logger.error('Failed sending data.')
             break
-        logger.info('{} -> {}:{}\n'.format(conn_receiver.getpeername(), conn_sender.getpeername(), repr(data)))
+        logger.info('local:{}\n{} -> {}:{}\n'.format(conn_sender.getsockname(), conn_receiver.getpeername(), conn_sender.getpeername(), repr(data)))
     try:
         conn_receiver.shutdown(socket.SHUT_RDWR)
         conn_sender.shutdown(socket.SHUT_RDWR)
