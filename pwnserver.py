@@ -39,9 +39,14 @@ def handle_connect(connect_socket):
     connect_socket.send(b'input your token:')
     token = recvuntil(connect_socket, b'\n')[:-1].decode()
     if token == b'':
+        connect_socket.shutdown(socket.SHUT_RDWR)
+        connect_socket.close()
         return
     (problem, flag) = get_pwn_data(token)
     if problem == '':
+        connect_socket.send(b'token error!')
+        connect_socket.shutdown(socket.SHUT_RDWR)
+        connect_socket.close()
         return
     problem_dir = '{}/{}'.format(pwn_dir, problem)
     if os.path.isdir(problem_dir) is False:
@@ -107,9 +112,9 @@ def handle_connect(connect_socket):
                                                       name=token, network='pwn',
                                                       pids_limit=30, volumes=volumes)
 
-
     # ip
     ip = docker_client.api.inspect_container(token)['NetworkSettings']['Networks']['pwn']['IPAddress']
+    docker_client.close()
     logger.info('container ip:{}'.format(ip))
     tcp_mapping_request(connect_socket, ip, 1337, log_name)
 
