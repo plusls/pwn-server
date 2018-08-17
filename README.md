@@ -14,6 +14,8 @@
 
 5.自动记录pwn题流量
 
+6.自动标记出读取了flag的流量
+
 ### 依赖
 
 fanotify
@@ -39,7 +41,7 @@ docker build --tag cnss/pwn ./docker/pwndocker
 启动pwn-server
 
 ```python
-python3 pwnserver.py
+sudo python3 pwnserver.py
 ```
 
 目前并没有封装为服务，无守护程序，也没有关闭容器的功能，若是要关闭容器需要手动关闭
@@ -181,6 +183,25 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 
 
 
+### 关于log
+
+对于流量将会被自动记录在log目录下，若是一个连接获取了flag，那条log的文件名中将会包含flag
+
+例如：
+
+```bash
+plusls@pwn:~/pwn/pwn-server/log$ ls -al
+total 44
+drwxrwxr-x 2 plusls plusls  4096 Aug 18 01:34 .
+drwxrwxr-x 9 plusls plusls  4096 Aug 18 01:27 ..
+-rw-r--r-- 1 root   root   12949 Aug 18 01:34 log.note.note_02.1534527196.572956.log
+-rw-r--r-- 1 root   root   12237 Aug 18 01:34 log.note.note_02.1534527217.5434923-flag.log
+-rw-r--r-- 1 root   root    1025 Aug 18 01:31 log.sh.sh.1534527057.2515137.log
+-rw-r--r-- 1 root   root     507 Aug 18 01:31 log.sh.sh.1534527099.9255965-flag.log
+```
+
+判断一个连接是否成功拿到flag使用了fainotify，想了解实现可以阅读源码
+
 ### config.json
 
 pwn-server使用config.json来配置
@@ -211,6 +232,6 @@ pwn-server使用config.json来配置
 
 1.自动化管理容器
 
-2.标记出成功getflag的log
+~~2.标记出成功getflag的log~~
 
 3.细化容器权限控制
