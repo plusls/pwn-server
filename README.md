@@ -44,9 +44,11 @@ docker build --tag cnss/pwn ./docker/pwndocker
 sudo python3 pwnserver.py
 ```
 
-目前并没有封装为服务，无守护程序，也没有关闭容器的功能，若是要关闭容器需要手动关闭
+目前并没有封装为服务，无守护程序
 
 注：关闭容器后容器将会被自动删除
+
+由于使用了fanotify，所以必须要有root权限
 
 **请务必保证pwn目录下的文件是可执行的！！！**
 

@@ -20,6 +20,9 @@ class Watcher(object):
         self.fan_fd = fanotify.Init(
             fanotify.FAN_CLASS_PRE_CONTENT, os.O_RDONLY)
         self.thread = threading.Thread(target=self._fa_worker)
+        
+        # 设置为守护线程
+        self.thread.setDaemon(True)
         self.thread.start()
 
     def _get_token(self, path):
@@ -109,6 +112,3 @@ class Watcher(object):
                     return tcp_data.rem_address
         return None
 
-    def __del__(self):
-        if self.thread.isAlive():
-            self.thread.stop()

@@ -6,6 +6,7 @@ import time
 import hashlib
 import os
 import docker
+import signal
 from get_pwn_data import get_pwn_data
 from forward import tcp_mapping_request, init_big_brother
 # log 路径
@@ -16,6 +17,16 @@ data_dir = None
 pwn_dir = None
 # pwndocker 路径 包含xinetd dockerfile
 pwmdocker_dir = None
+
+# 容器列表
+container_list = []
+
+def sigint_handler(signum, frame):
+    print('stop containers')
+    for container in container_list:
+        container.kill()
+    docker_client.close()
+    exit(0)
 
 
 def recvuntil(connect_socket, s):
@@ -86,9 +97,6 @@ def handle_connect(connect_socket):
         flag_file.write(flag)
         flag_file.close()
 
-    # 连接docker
-    docker_client = docker.from_env()
-
     # 判断是否存在当前token对应的容器
     try:
         pwn_containers = docker_client.containers.get(token)
@@ -121,16 +129,16 @@ def handle_connect(connect_socket):
                                                       auto_remove=True, detach=True,
                                                       name=token, network='pwn',
                                                       pids_limit=30, volumes=volumes)
+        container_list.append(pwn_containers)
 
     # ip
     ip = docker_client.api.inspect_container(token)['NetworkSettings']['Networks']['pwn']['IPAddress']
-    docker_client.close()
     logger.info('container ip:{}'.format(ip))
     tcp_mapping_request(connect_socket, ip, 1337, log_name, log_dir, token)
 
 
 def main():
-    global log_dir, data_dir, pwn_dir, pwmdocker_dir
+    global log_dir, data_dir, pwn_dir, pwmdocker_dir, docker_client
     # 初始化配置
     json_fp = open('config.json', 'r')
     config = json.loads(json_fp.read())
@@ -163,6 +171,13 @@ def main():
 
     # 初始化监视器
     init_big_brother(data_dir)
+
+    # 初始化docker连接
+    docker_client = docker.from_env()
+
+    # 处理ctr+c信号
+    signal.signal(signal.SIGINT, sigint_handler)
+
 
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
