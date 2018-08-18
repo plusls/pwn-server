@@ -38,13 +38,20 @@ def handle_connect(connect_socket):
     connect_socket.send(b'input your token:')
     token = recvuntil(connect_socket, b'\n')[:-1].decode()
     if token == b'':
-        connect_socket.shutdown(socket.SHUT_RDWR)
+        connect_socket.send(b'token error!')
+        try:
+            connect_socket.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass
         connect_socket.close()
         return
     (problem, flag) = get_pwn_data(token)
     if problem == '':
         connect_socket.send(b'token error!')
-        connect_socket.shutdown(socket.SHUT_RDWR)
+        try:
+            connect_socket.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass
         connect_socket.close()
         return
     problem_dir = '{}/{}'.format(pwn_dir, problem)
