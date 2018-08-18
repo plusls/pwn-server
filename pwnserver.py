@@ -36,16 +36,19 @@ def recvuntil(connect_socket, s):
 def handle_connect(connect_socket):
     connect_time = str(time.time())
     connect_socket.send(b'input your token:')
-    token = recvuntil(connect_socket, b'\n')[:-1].decode()
-    if token == b'':
-        connect_socket.send(b'token error!')
-        try:
-            connect_socket.shutdown(socket.SHUT_RDWR)
-        except Exception:
-            pass
-        connect_socket.close()
-        return
-    (problem, flag) = get_pwn_data(token)
+    token = recvuntil(connect_socket, b'\n')[:-1]
+    try:
+        token = token.decode()
+    except UnicodeDecodeError:
+        print('UnicodeDecodeError token={}'.format(token))
+        token = ''
+
+    if token != '':
+        (problem, flag) = get_pwn_data(token)
+    else:
+        problem = ''
+        flag = ''
+
     if problem == '':
         connect_socket.send(b'token error!')
         try:
