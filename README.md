@@ -16,6 +16,8 @@
 
 6.自动标记出读取了flag的流量
 
+7.防fork bomb
+
 ### 依赖
 
 fanotify
@@ -183,7 +185,13 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 
 但是对于相同的token则不会启动多个容器
 
+### 关于fork bomb
 
+每个容器都有资源限制，限制了pid的数量
+
+正常情况下父进程被发送SIGPIPE后子进程也会被杀死，所以在socket断开后fork炸弹一般会失效
+
+当然，例外情况也是有的，详情见BUG
 
 ### 关于log
 
