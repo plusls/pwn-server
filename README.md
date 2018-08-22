@@ -237,3 +237,39 @@ pwn-server使用config.json来配置
 ~~2.标记出成功getflag的log~~
 
 3.细化容器权限控制
+
+### BUG
+
+目前已知在某些情况下socket断开后程序仍会继续运行...
+
+socket断开后程序结束的原因是SIGPIPE，当往一个写端关闭的管道或socket连接中连续写入数据时会引发SIGPIPE信号，从而导致程序结束
+
+若是程序无任何写操作并进入死循环，则会出现冗余进程
+
+例如
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int main()
+{
+    setbuf(stdout, NULL);
+    setbuf(stdin, NULL);
+    setbuf(stderr, NULL);
+
+    char s[0x300];
+    while (1) {
+        memset(s, 0, 0x300);
+        printf("Please input somthing:");
+        read(0, s, 0x300);
+        printf("Your input is:");
+        printf(s);
+    }
+    return 0;
+}
+```
+
+printf被改为system后程序就没有任何写操作了，因此不会触发SIGPIPE，从而不会被结束
