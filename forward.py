@@ -44,9 +44,14 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
                                               repr(data)))
     try:
         conn_receiver.shutdown(socket.SHUT_RDWR)
+    except Exception:
+        pass
+
+    try:
         conn_sender.shutdown(socket.SHUT_RDWR)
     except Exception:
         pass
+
     return
 
 # 端口映射请求处理
