@@ -17,6 +17,8 @@ data_dir = None
 pwn_dir = None
 # pwndocker 路径 包含xinetd dockerfile
 pwmdocker_dir = None
+# docker_client
+docker_client = None
 
 # 容器列表
 container_list = []

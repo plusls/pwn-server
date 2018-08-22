@@ -75,6 +75,7 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, t
     t1.join()
     t2.join()
     file_handle = logger.handlers[0]
+    logger.info('fd:{} {}'.format(local_conn.fileno(), remote_conn.fileno()))
     logger.removeHandler(file_handle)
     file_handle.close()
     get_flag = big_brother.get_last_access(token, socket_data)
@@ -84,6 +85,7 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, t
         print('big brother catch you')
         os.rename(old_log_path, new_log_path)
     big_brother.rmv_watch_file(token, socket_data)
+
 
     local_conn.close()
     remote_conn.close()
