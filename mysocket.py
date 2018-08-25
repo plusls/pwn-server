@@ -3,7 +3,8 @@ def myrecv(s, buffersize, flag=0):
     while True:
         try:
             return s.recv(buffersize, flag)
-        except socket.timeout:
+        except socket.timeout as e:
+            print('timeout {}'.format(e))
             continue
 
 
