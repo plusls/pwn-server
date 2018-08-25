@@ -49,7 +49,10 @@ def recvuntil(connect_socket, s):
 def handle_connect(connect_socket):
     connect_time = str(time.time())
     connect_socket.send(b'input your token:')
-    token = recvuntil(connect_socket, b'\n')[:-1]
+    try:
+        token = recvuntil(connect_socket, b'\n')[:-1]
+    except ConnectionResetError:
+        token = b''
     try:
         token = token.decode()
     except UnicodeDecodeError:
