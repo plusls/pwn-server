@@ -52,7 +52,8 @@ def handle_connect(connect_socket):
     try:
         token = recvuntil(connect_socket, b'\n')[:-1]
     except ConnectionResetError:
-        token = b''
+        connect_socket.close()
+        return
     try:
         token = token.decode()
     except UnicodeDecodeError:
