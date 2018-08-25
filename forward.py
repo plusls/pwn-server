@@ -6,8 +6,9 @@ import logging
 import threading
 import socket
 import time
-from watcher import Watcher
 import os
+from watcher import Watcher
+from mysocket import myrecv
 
 PKT_BUFF_SIZE = 4096
 
@@ -25,9 +26,9 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
     logger = logging.getLogger(log_name)
     while True:
         try:
-            data = conn_receiver.recv(PKT_BUFF_SIZE)
-        except Exception:
-            logger.info('Connection closed.')
+            data = myrecv(conn_receiver, PKT_BUFF_SIZE)
+        except Exception as e:
+            logger.info('Exception:{} msg: {} Connection closed.'.format(str(type(e)), str(e)))
             break
         if not data:
             logger.info('No more data is received.')
@@ -38,10 +39,10 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
             logger.error('Failed sending data.')
             break
         logger.info('{}->{}->{}->{}:\n{}'.format(conn_receiver.getpeername(),
-                                              conn_receiver.getsockname(),
-                                              conn_sender.getsockname(),
-                                              conn_sender.getpeername(),
-                                              repr(data)))
+                                                 conn_receiver.getsockname(),
+                                                 conn_sender.getsockname(),
+                                                 conn_sender.getpeername(),
+                                                 repr(data)))
     try:
         conn_receiver.shutdown(socket.SHUT_RDWR)
     except Exception:
@@ -51,7 +52,6 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
         conn_sender.shutdown(socket.SHUT_RDWR)
     except Exception:
         pass
-
     return
 
 # 端口映射请求处理
@@ -90,7 +90,6 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, t
         print('big brother catch you')
         os.rename(old_log_path, new_log_path)
     big_brother.rmv_watch_file(token, socket_data)
-
 
     local_conn.close()
     remote_conn.close()

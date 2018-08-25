@@ -9,6 +9,7 @@ import docker
 import signal
 from get_pwn_data import get_pwn_data
 from forward import tcp_mapping_request, init_big_brother
+from mysocket import recvuntil, set_keepalive_linux
 # log 路径
 log_dir = None
 # 生成的flag路径
@@ -31,37 +32,11 @@ def sigint_handler(signum, frame):
     exit(0)
 
 
-def recvuntil(connect_socket, s):
-    ret = b''
-    while True:
-        #tmp = connect_socket.recv(1000, flags=(socket.MSG_PEEK|socket.MSG_DONTWAIT))
-        if connect_socket.recv(1, socket.MSG_PEEK) == b'':
-            return b''
-        tmp = connect_socket.recv(1000, socket.MSG_PEEK)
-        idx = tmp.find(s)
-        if idx != -1:
-            ret += tmp[:idx + 1]
-            connect_socket.recv(idx + 1)
-            return ret
-        connect_socket.recv(1000)
-
-
-def set_keepalive_linux(sock, after_idle_sec=1, interval_sec=3, max_fails=5):
-    """Set TCP keepalive on an open socket.
- 
-    It activates after 1 second (after_idle_sec) of idleness,
-    then sends a keepalive ping once every 3 seconds (interval_sec),
-    and closes the connection after 5 failed ping (max_fails), or 15 seconds
-    """
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, after_idle_sec)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval_sec)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, max_fails)
-
-
 def handle_connect(connect_socket):
     connect_time = str(time.time())
     set_keepalive_linux(connect_socket)
+    connect_socket.settimeout(20)
+
     connect_socket.send(b'input your token:')
     try:
         token = recvuntil(connect_socket, b'\n')[:-1]
