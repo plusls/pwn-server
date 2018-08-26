@@ -15,7 +15,10 @@ def recvuntil(connect_socket, s, maxlen=200):
         #tmp = connect_socket.recv(1000, flags=(socket.MSG_PEEK|socket.MSG_DONTWAIT))
         tmp = myrecv(connect_socket, 1000)
         idx = tmp.find(s)
-        if idx != -1:
+        # socket断开时收到'' 不加此判断会导致死循环
+        if tmp == b'':
+            return b''
+        elif idx != -1:
             ret += tmp[:idx + 1]
             return ret
         elif len(ret) > maxlen:
