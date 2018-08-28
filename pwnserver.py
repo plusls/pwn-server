@@ -37,10 +37,11 @@ def handle_connect(connect_socket):
     set_keepalive_linux(connect_socket)
     connect_socket.settimeout(20)
 
-    connect_socket.send(b'input your token:')
     try:
+        connect_socket.send(b'input your token:')
         token = recvuntil(connect_socket, b'\n')[:-1]
     except ConnectionResetError:
+        print('ConnectionResetError')
         connect_socket.close()
         return
     try:
@@ -56,10 +57,14 @@ def handle_connect(connect_socket):
         flag = ''
 
     if problem == '':
-        connect_socket.send(b'token error!')
+        try:
+            connect_socket.send(b'token error!')
+        except ConnectionResetError:
+            print('ConnectionResetError')
         try:
             connect_socket.shutdown(socket.SHUT_RDWR)
-        except Exception:
+        except Exception as e:
+            print('shutdown error:{}'.format(str(type(e))))
             pass
         connect_socket.close()
         return

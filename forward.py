@@ -35,7 +35,8 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
             break
         try:
             conn_sender.sendall(data)
-        except Exception:
+        except Exception as e:
+            print('sendall error:{}'.format(str(type(e))))
             logger.error('Failed sending data.')
             break
         logger.info('{}->{}->{}->{}:\n{}'.format(conn_receiver.getpeername(),
@@ -64,7 +65,8 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, t
     remote_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         remote_conn.connect((remote_ip, remote_port))
-    except Exception:
+    except Exception as e:
+        print('connect error:{}'.format(str(type(e))))
         local_conn.close()
         logger.error('Unable to connect to the remote server.')
         return
