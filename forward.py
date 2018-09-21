@@ -28,7 +28,7 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
         try:
             data = myrecv(conn_receiver, PKT_BUFF_SIZE)
         except Exception as e:
-            logger.info('Exception:{} msg: {} Connection closed.'.format(str(type(e)), str(e)))
+            logger.info('myrecv error:{} msg: {} Connection closed.'.format(str(type(e)), str(e)))
             break
         if not data:
             logger.info('No more data is received.')
@@ -36,7 +36,7 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
         try:
             conn_sender.sendall(data)
         except Exception as e:
-            print('sendall error:{}'.format(str(type(e))))
+            logger.info('sendall error:{} msg:{} Connection closed.'.format(str(type(e)), str(e)))
             logger.error('Failed sending data.')
             break
         logger.info('{}->{}->{}->{}:\n{}'.format(conn_receiver.getpeername(),

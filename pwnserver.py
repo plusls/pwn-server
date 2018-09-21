@@ -41,9 +41,10 @@ def handle_connect(connect_socket):
         connect_socket.send(b'input your token:')
         token = recvuntil(connect_socket, b'\n')[:-1]
     except ConnectionResetError:
-        print('ConnectionResetError')
+        print('write input token ConnectionResetError')
         connect_socket.close()
         return
+
     try:
         token = token.decode()
     except UnicodeDecodeError:
@@ -60,11 +61,13 @@ def handle_connect(connect_socket):
         try:
             connect_socket.send(b'token error!')
         except ConnectionResetError:
-            print('ConnectionResetError')
+            print('write token error ConnectionResetError')
+        except BrokenPipeError:
+            print('write token error BrokenPipeError')
         try:
             connect_socket.shutdown(socket.SHUT_RDWR)
         except Exception as e:
-            print('shutdown error:{}'.format(str(type(e))))
+            print('shutdown error:{} msg:{}'.format(str(type(e)), str(e)))
             pass
         connect_socket.close()
         return
