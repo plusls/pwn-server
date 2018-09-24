@@ -70,10 +70,23 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, t
     global big_brother
     logger = logging.getLogger(log_name)
     remote_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        remote_conn.connect((remote_ip, remote_port))
-    except Exception as e:
-        print('connect error:{}'.format(str(type(e))))
+    for _ in range(10):
+        try:
+            remote_conn.connect((remote_ip, remote_port))
+        except ConnectionRefusedError as e:
+            print('ConnectionRefusedError msg:{}'.format(str(e)))
+            print('try again')
+            time.sleep(0.2)
+            continue
+        except Exception as e:
+            print('connect error:{} msg:{}'.format(str(type(e)), str(e)))
+            local_conn.close()
+            logger.error('Unable to connect to the remote server.')
+            return
+        break
+    else:
+        # 理论不可能走到这一步
+        print('connect error:{} msg:{}'.format(str(type(e)), str(e)))
         local_conn.close()
         logger.error('Unable to connect to the remote server.')
         return

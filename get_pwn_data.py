@@ -8,4 +8,4 @@ def get_pwn_data(token):
     	return ('pwn1', "cnss{it_is_pwn1}", 'cnss/pwn')
     if token == 'sh':
         return ('sh', 'cnss{test_hahah}', 'cnss/pwn')
-    return('','')
+    return('', '', '')
