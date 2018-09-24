@@ -52,7 +52,7 @@ def handle_connect(connect_socket):
         token = ''
 
     if token != '':
-        (problem, flag) = get_pwn_data(token)
+        (problem, flag, image_tag) = get_pwn_data(token)
     else:
         problem = ''
         flag = ''
@@ -83,7 +83,7 @@ def handle_connect(connect_socket):
     handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
     logger.addHandler(handler)
 
-    logger.info('token={}, problem={}, flag={}'.format(token, problem, flag))
+    logger.info('token={}, problem={}, flag={}, image_tag={}'.format(token, problem, flag, image_tag))
 
     # data初始化
     problem_data_dir = '{}/{}'.format(data_dir, token)
@@ -113,7 +113,7 @@ def handle_connect(connect_socket):
     # 不存在容器则新建容器
     if pwn_containers is None:
         # 判断是否存在指定镜像
-        pwn_image = docker_client.images.get('cnss/pwn')
+        pwn_image = docker_client.images.get(image_tag)
 
         # 判断是否存在网络
         try:
@@ -136,6 +136,9 @@ def handle_connect(connect_socket):
 
     # ip
     ip = docker_client.api.inspect_container(token)['NetworkSettings']['Networks']['pwn']['IPAddress']
+    if ip == '':
+        logger.info('create container fail, token = {}'.format(token))
+        return
     logger.info('container ip:{}'.format(ip))
     tcp_mapping_request(connect_socket, ip, 1337, log_name, log_dir, token)
 
