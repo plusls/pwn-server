@@ -39,11 +39,18 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
             logger.info('sendall error:{} msg:{} Connection closed.'.format(str(type(e)), str(e)))
             logger.error('Failed sending data.')
             break
-        logger.info('{}->{}->{}->{}:\n{}'.format(conn_receiver.getpeername(),
-                                                 conn_receiver.getsockname(),
-                                                 conn_sender.getsockname(),
-                                                 conn_sender.getpeername(),
-                                                 repr(data)))
+        
+        # 在socket关闭时调用getpeername可能会抛出异常：ENOTCONN既107
+        try:
+            logger.info('{}->{}->{}->{}:\n{}'.format(conn_receiver.getpeername(),
+                                                    conn_receiver.getsockname(),
+                                                    conn_sender.getsockname(),
+                                                    conn_sender.getpeername(),
+                                                    repr(data)))
+        except OSError as e:
+            logger.info('log error:{} msg:{} Connection closed.'.format(str(type(e)), str(e)))
+
+
     try:
         conn_receiver.shutdown(socket.SHUT_RDWR)
     except Exception:
