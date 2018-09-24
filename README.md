@@ -18,6 +18,8 @@
 
 7.防fork bomb
 
+8.支持多镜像，既不同容器可以指定不同的docker镜像
+
 ### 依赖
 
 fanotify
@@ -102,16 +104,16 @@ stdbuf -i 0 -o 0 -e 0 ./printf
 
 ```python
 def get_pwn_data(token):
-    '''参数为token 返回该token对应的题目名和flag'''
+    '''参数为token 返回该token对应的题目名和flag以及image_tag'''
     if token == 'note_01':
-    	return ('note', "cnss{it_is_note_01}")
+    	return ('note', "cnss{it_is_note_01}", "cnss/pwn")
     elif token == 'note_02':
-        return ('note', 'cnss{it_is_note_02}')
+        return ('note', 'cnss{it_is_note_02}', "cnss/pwn")
 
     if token == 'pwn1_01':
-    	return ('pwn1', "cnss{it_is_pwn1}")
+    	return ('pwn1', "cnss{it_is_pwn1}", "cnss/pwn")
 
-    return('','')
+    return('', '', '')
 ```
 
 **token=note_01**
@@ -177,7 +179,9 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 
 当然，可以自定义该函数与ctf平台进行交互，从而做到反作弊
 
+#### 多镜像支持
 
+考虑到不同题目可能要求的运行环境不同，pwnserver支持不同题目使用不同的镜像，只需要在**get_pwn_data**中设置即可
 
 ### 关于容器
 
@@ -240,7 +244,7 @@ pwn-server使用config.json来配置
 
 ### TO DO
 
-1.自动化管理容器
+~~1.自动化管理容器~~
 
 ~~2.标记出成功getflag的log~~
 
