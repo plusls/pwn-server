@@ -72,8 +72,9 @@ class Watcher(object):
                 if token in self.watch_dict:
                     # 获取socket数据
                     socket_data = self._get_socket_data(token, event.pid)
-                    self.watch_dict[token][socket_data] = True
-                    print(socket_data, full_path)  # DEBUG
+                    if socket_data != None:
+                        self.watch_dict[token][socket_data] = True
+                        print(socket_data, full_path)  # DEBUG
                 os.write(self.fan_fd, fanotify.Response(
                     event.fd, fanotify.FAN_ALLOW))
                 os.close(event.fd)
@@ -103,7 +104,7 @@ class Watcher(object):
                     if socket_inode not in socket_inode_list:
                         socket_inode_list.append(socket_inode)
             now_pid = get_ppid(now_pid)
-            if b'/bin/sh\x00-c\x00/ctf/pwn/bin/startdocker.sh\x00' == get_cmdline(now_pid):
+            if now_pid == 0 or b'/bin/sh\x00-c\x00/ctf/pwn/bin/startdocker.sh\x00' == get_cmdline(now_pid):
                 break
 
         for socket_inode in socket_inode_list:
