@@ -32,6 +32,8 @@ def sigint_handler(signum, frame):
     for container in container_list:
         container.kill()
     docker_client.close()
+    network = docker_client.networks.get('pwn')
+    network.remove()
     exit(0)
 
 
