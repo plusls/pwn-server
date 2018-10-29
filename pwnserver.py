@@ -26,6 +26,7 @@ container_list = []
 
 # 锁
 lock_dict = {}
+connect_lock = None
 
 def sigint_handler(signum, frame):
     print('stop containers')
@@ -77,12 +78,14 @@ def handle_connect(connect_socket):
         connect_socket.close()
         return
     
+    connect_lock.acquire()
     #创建锁
     if token not in lock_dict:
         lock_dict[token] = threading.Lock()
     mutex = lock_dict[token]
     #锁定
     mutex.acquire()
+    connect_lock.release()
 
     problem_dir = '{}/{}'.format(pwn_dir, problem)
     if os.path.isdir(problem_dir) is False:
@@ -162,7 +165,9 @@ def handle_connect(connect_socket):
 
 
 def main():
-    global log_dir, data_dir, pwn_dir, pwmdocker_dir, docker_client
+    global log_dir, data_dir, pwn_dir, pwmdocker_dir, docker_client, connect_lock
+    # 连接锁
+    connect_lock = threading.Lock()
     # 初始化配置
     json_fp = open('config.json', 'r')
     config = json.loads(json_fp.read())
