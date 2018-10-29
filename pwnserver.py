@@ -84,8 +84,8 @@ def handle_connect(connect_socket):
         lock_dict[token] = threading.Lock()
     mutex = lock_dict[token]
     #锁定
-    mutex.acquire()
     connect_lock.release()
+    mutex.acquire()
 
     problem_dir = '{}/{}'.format(pwn_dir, problem)
     if os.path.isdir(problem_dir) is False:
