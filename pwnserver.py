@@ -42,11 +42,15 @@ def sigint_handler(signum, frame):
         except:
             pass
         print('kill {}'.format(token))
+    print('kill all container')
     docker_client.close()
-    network = docker_client.networks.get('pwn')
-    network.remove()
-
+    try:
+        network = docker_client.networks.get('pwn')
+        network.remove()
+    except:
+        pass
     connect_lock.release()
+    print('exit')
     exit(0)
 
 
