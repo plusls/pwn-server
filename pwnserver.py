@@ -24,6 +24,9 @@ docker_client = None
 # 容器列表
 container_list = []
 
+# 锁
+lock_dict = {}
+
 def sigint_handler(signum, frame):
     print('stop containers')
     for container in container_list:
@@ -71,6 +74,14 @@ def handle_connect(connect_socket):
             pass
         connect_socket.close()
         return
+    
+    #创建锁
+    if problem in lock_dict:
+        lock_dict[problem] = threading.Lock()
+    mutex = lock_dict[problem]
+    #锁定
+    mutex.acquire()
+
     problem_dir = '{}/{}'.format(pwn_dir, problem)
     if os.path.isdir(problem_dir) is False:
         raise Exception('{} is not exists'.format(problem_dir))
@@ -87,6 +98,7 @@ def handle_connect(connect_socket):
 
     # data初始化
     problem_data_dir = '{}/{}'.format(data_dir, token)
+
     # 不存在路径则创建
     if os.path.isdir(problem_data_dir) is False:
         if os.path.exists(problem_data_dir):
@@ -140,6 +152,10 @@ def handle_connect(connect_socket):
         logger.info('create container fail, token = {}'.format(token))
         return
     logger.info('container ip:{}'.format(ip))
+    
+    #释放
+    mutex.release()
+
     tcp_mapping_request(connect_socket, ip, 1337, log_name, log_dir, token)
 
 
