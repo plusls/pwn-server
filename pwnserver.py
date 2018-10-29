@@ -76,9 +76,9 @@ def handle_connect(connect_socket):
         return
     
     #创建锁
-    if problem in lock_dict:
-        lock_dict[problem] = threading.Lock()
-    mutex = lock_dict[problem]
+    if token in lock_dict:
+        lock_dict[token] = threading.Lock()
+    mutex = lock_dict[token]
     #锁定
     mutex.acquire()
 
