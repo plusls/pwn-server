@@ -22,19 +22,31 @@ pwmdocker_dir = None
 docker_client = None
 
 # 容器列表
-container_list = []
-
+container_dict = {}
+# connect count dict
+connect_count_dict = {}
+# timeout dict
+timeout_dict = {}
 # 锁
 lock_dict = {}
 connect_lock = None
 
 def sigint_handler(signum, frame):
     print('stop containers')
-    for container in container_list:
-        container.kill()
+    connect_lock.acquire()
+    print('lock connect!')
+
+    for token in container_dict:
+        try:
+            container_dict[token].kill('SIGKILL')
+        except:
+            pass
+        print('kill {}'.format(token))
     docker_client.close()
     network = docker_client.networks.get('pwn')
     network.remove()
+
+    connect_lock.release()
     exit(0)
 
 
@@ -82,10 +94,10 @@ def handle_connect(connect_socket):
     #创建锁
     if token not in lock_dict:
         lock_dict[token] = threading.Lock()
-    mutex = lock_dict[token]
+    container_lock = lock_dict[token]
     #锁定
     connect_lock.release()
-    mutex.acquire()
+    container_lock.acquire()
 
     problem_dir = '{}/{}'.format(pwn_dir, problem)
     if os.path.isdir(problem_dir) is False:
@@ -118,14 +130,17 @@ def handle_connect(connect_socket):
         flag_file.close()
 
     # 判断是否存在当前token对应的容器
-    try:
-        pwn_containers = docker_client.containers.get(token)
-        # 正常来说不可能走到这一步的
-        if pwn_containers.status == 'exited':
-            pwn_containers.remove()
+    if token not in container_dict:
+        try:
+            pwn_containers = docker_client.containers.get(token)
+            # 正常来说不可能走到这一步的
+            if pwn_containers.status == 'exited':
+                pwn_containers.remove()
+                pwn_containers = None
+        except docker.errors.NotFound:
             pwn_containers = None
-    except docker.errors.NotFound:
-        pwn_containers = None
+    else:
+        pwn_containers = container_dict[token]
 
     # 不存在容器则新建容器
     if pwn_containers is None:
@@ -149,7 +164,7 @@ def handle_connect(connect_socket):
                                                       auto_remove=True, detach=True,
                                                       name=token, network='pwn',
                                                       pids_limit=30, volumes=volumes)
-        container_list.append(pwn_containers)
+        container_dict[token] = pwn_containers
 
     # ip
     ip = docker_client.api.inspect_container(token)['NetworkSettings']['Networks']['pwn']['IPAddress']
@@ -158,16 +173,37 @@ def handle_connect(connect_socket):
         return
     logger.info('container ip:{}'.format(ip))
     
-    #释放
-    mutex.release()
 
-    tcp_mapping_request(connect_socket, ip, 1337, log_name, log_dir, token)
+    # 记录连接数
+    if token not in connect_count_dict:
+        connect_count_dict[token] = 0
+    connect_count_dict[token] += 1
+    if token in timeout_dict:
+        timeout_dict[token].cancel()
+        del timeout_dict[token]
+    #释放
+    container_lock.release()
+
+    tcp_mapping_request(connect_socket, ip, 1337, log_name, log_dir, token, connect_count_dict, lock_dict, timeout_dict, timeout_fun)
+
+def timeout_fun(token):
+    container_lock = lock_dict[token]
+    container_lock.acquire()
+    if connect_count_dict[token] == 0:
+        container = container_dict[token]
+        container.kill('SIGKILL')
+        print('timeout kill {}'.format(token))
+        del timeout_dict[token]
+        del container_dict[token]
+    container_lock.release()
 
 
 def main():
     global log_dir, data_dir, pwn_dir, pwmdocker_dir, docker_client, connect_lock
     # 连接锁
     connect_lock = threading.Lock()
+    # 超时锁
+    timeout_lock = threading.Lock()
     # 初始化配置
     json_fp = open('config.json', 'r')
     config = json.loads(json_fp.read())

@@ -50,7 +50,7 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
         except OSError as e:
             logger.info('log error:{} msg:{} Connection closed.'.format(str(type(e)), str(e)))
 
-
+    # shutdown会通知另一个线程结束
     try:
         conn_receiver.shutdown(socket.SHUT_RDWR)
     except Exception:
@@ -65,7 +65,7 @@ def tcp_mapping_worker(conn_receiver, conn_sender, log_name, token):
 # 端口映射请求处理
 
 
-def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, token):
+def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, token, connect_count_dict, lock_dict, timeout_dict, timeout_fun):
     '''流量转发+记录'''
     global big_brother
     logger = logging.getLogger(log_name)
@@ -114,4 +114,15 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port, log_name, log_dir, t
 
     local_conn.close()
     remote_conn.close()
+
+    # 设置超时销毁容器
+    container_lock = lock_dict[token]
+    container_lock.acquire()
+    connect_count_dict[token] -= 1
+    if connect_count_dict[token] == 0:
+        timer = threading.Timer(5, timeout_fun, args=(token, ))
+        timeout_dict[token] = timer
+        timer.start()
+        print('start timer')
+    container_lock.release()
     return
