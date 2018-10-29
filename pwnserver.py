@@ -76,7 +76,7 @@ def handle_connect(connect_socket):
         return
     
     #创建锁
-    if token in lock_dict:
+    if token not in lock_dict:
         lock_dict[token] = threading.Lock()
     mutex = lock_dict[token]
     #锁定
